@@ -1,33 +1,103 @@
+import pdb
 import os
+import argparse
+
+parser = argparse.ArgumentParser(prog="create-project")
+parser.add_argument("-P", "--PATH-ROOT",
+                    action="store",
+                    default="./",
+                    help="Specifies the root directory relative to which files will be created.")
+
+parser.add_argument("-F", "--folders",
+                    action="store",
+                    nargs="+",
+                    default=["src/template/", "src/style/sass/", "src/img/"])
+
+parser.add_argument("-f", "--files",
+                    action="store",
+                    nargs="+",
+                    default=["index.pug", "style.sass"])
+
+parser.add_argument("-r", "--root-files",
+                    action="store",
+                    nargs="+",
+                    default=["gulpfile.js"])
+
+parser.add_argument("-b", "--base-canon",
+                    action="store_true")
+
+args = parser.parse_args()
 
 
-def createFile(fileName):
-    return open(fileName, "tw", encoding="utf-8").close()
 
+def createFile(filePath):
+    return open(filePath, "tw", encoding="utf-8").close()
 
-PATH_ROOT = "./src/"
-folders = ["template", "style/sass"]
-
-createFile("gulpfile.js")
-
-for folder in folders:
-
-    if folder == folders[0]:
-
-        path = os.path.join(PATH_ROOT, folder)
+def createDir(folder):
+    path = os.path.join(PATH_ROOT, folder)
+    try:
         os.makedirs(path)
-        file = os.path.join(path, "template.pug")
-        createFile(file)
+    except FileExistsError:
+        pass
 
-    elif folder == folders[1]:
+    return path
 
-        path = os.path.join(PATH_ROOT, folder)
-        os.makedirs(path)
-        file = os.path.join(path, "main.sass")
-        createFile(file)
 
-    else:
+PATH_ROOT = args.PATH_ROOT
+baseCanon = args.base_canon
 
-        path = os.path.join(PATH_ROOT, folder)
-        os.mkdir(path)
 
+if baseCanon:
+    foldersArgs = args.folders
+    filesArgs = args.files
+    rootFilesArgs = args.root_files
+
+    folders = ["src/template/", "src/style/sass/", "src/img/"]
+    files = ["index.pug", "style.sass"]
+    rootFiles = ["gulpfile.js"]
+
+    folders.extend(foldersArgs)
+    files.extend(filesArgs)
+    rootFiles.extend(rootFilesArgs)
+
+else:
+    folders = args.folders
+
+    files = args.files
+
+    rootFiles = args.root_files
+
+
+
+foldersDict = {}
+j=0
+for directory in folders:
+    try:
+        filesList = [files[j]]
+    except IndexError:
+        filesList = None
+
+    foldersDict[directory] = filesList
+    j+=1
+
+folderDictKeys = list(foldersDict.keys())
+
+
+
+
+
+for folder in folderDictKeys:
+    pathDir = createDir(folder)
+    try:
+        for file in foldersDict[folder]:
+            pathFile = file
+
+            path = pathDir + pathFile
+            createFile(path)
+    except TypeError:
+        pass
+
+
+
+for file in rootFiles:
+    createFile(file)
